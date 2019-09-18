@@ -6,4 +6,6 @@ Each folder is labled based on the associated manuscript. Code files are labled 
 ## Papers:
 primaryTranscriptAnnotation_code: Defining data-driven gene coordinates with primaryTranscriptAnnotation in R
 
+preadipogenesisNetwork: Molecular mechanisms and gene regulatory networks underlying early adipogenesis
+
 
