@@ -54,6 +54,33 @@ long.minus = long.minus[ind,]
 all(infr.minus$gene == long.minus$gene)
 all(infr.plus$gene == long.plus$gene)
 
+# 
+# #######################################################################################
+# ## compare with inferred coords - TSS - panel c
+# #######################################################################################
+# 
+# # TSS dists (pos = downstream for id)
+# d1 = infr.plus$start - long.plus$start
+# d2 = long.minus$end - infr.minus$end
+# dTSS = c(d1,d2)
+# names(dTSS) = c(infr.plus$gene, infr.minus$gene)
+# 
+# # get number of exon1 instances for each dTSS
+# nex1 = sapply(names(dTSS),function(x){length(which(gencode.firstExon$gene==x))})
+# frac.rean = rep(0, length(1:max(nex1)))
+# for(ii in 1:max(nex1)){
+#   ind.nex1 = which(nex1 == ii)
+#   ge.nex1 = names(nex1)[ind.nex1]
+#   ind.tss = sapply(ge.nex1,function(x){which(names(dTSS)==x)}) %>% unlist()
+#   if(length(ind.tss)>0){
+#     frac.rean[ii] = length(which(dTSS[ind.tss]!=0)) / length(ind.nex1) 
+#   }
+# }
+# frac.rean = data.frame(nex1=1:max(nex1),frac.rean=frac.rean)
+# hypo.rean = data.frame(nex1=1:max(nex1),frac.rean=1/(1:max(nex1)))
+# df.bar = barplot(frac.rean$frac.rean, names.arg=frac.rean$nex1)
+# lines(x=df.bar, y=hypo.rean$frac.rean,lwd=2)
+
 
 #######################################################################################
 ## compare with inferred coords - TSS
@@ -90,14 +117,25 @@ nexon1 = sapply(genes0,function(x){
 # remove cases with dTSS=0 and one exon
 ind.rem = which(nexon1==1)
 dTSSnoe1 = dTSS[-ind0[ind.rem]]
+dTSS1e1 = dTSS[-ind0[-ind.rem]]
 
-# hist with all dTSS, single bin for dTSS=0 (Fig S4a)
+# hist with single bin for dTSS=0
 plt = log10(dTSS+1)
 del = min(plt[plt>0])
 bk = seq(min(plt), max(plt)+del, by=del)
-hist(plt, col="black",main="",xlab="dTSS, identified - largest (bp)",ylab="frequency",breaks=bk)
+hist(plt, col="black",main="",xlab="dTSS, identified - largest (bp)",
+     ylab="frequency",breaks=bk, ylim=c(0,8000))
 
-# hist with only re-annotated TSSs at 75% quantile (Fig S4b)
+# hist with single exon for dTSS=0 in first bin (49%)
+# gray bar for panel a
+plt = log10(dTSS1e1+1)
+del = min(plt[plt>0])
+bk = seq(min(plt), max(plt)+del, by=del)
+hist(plt, col="black",main="",xlab="dTSS, identified - largest (bp)",
+     ylab="frequency",breaks=bk, ylim=c(0,8000))
+
+
+# hist with only re-annotated TSSs
 nexon1 = sapply(names(dTSS),function(x){
   inds = which(gencode.firstExon$gene==x)
   strd = gencode.firstExon$strand[inds][1]
@@ -114,6 +152,49 @@ qt = quantile(plt)
 plt = plt[plt < qt[4]]
 bk = seq(min(plt), max(plt)+del, by=del)
 hist(plt, col="black",main="",xlab="dTSS, identified - largest (bp)",ylab="frequency")
+
+# get number of exon1 instances for each dTSS
+nex1 = sapply(names(dTSS),function(x){length(which(gencode.firstExon$gene==x))})
+frac.rean = rep(0, length(1:max(nex1)))
+for(ii in 1:max(nex1)){
+  ind.nex1 = which(nex1 == ii)
+  ge.nex1 = names(nex1)[ind.nex1]
+  ind.tss = sapply(ge.nex1,function(x){which(names(dTSS)==x)}) %>% unlist()
+  if(length(ind.tss)>0){
+    frac.rean[ii] = length(which(dTSS[ind.tss]!=0)) / length(ind.nex1) 
+  }
+}
+frac.rean = data.frame(nex1=1:max(nex1),frac.rean=frac.rean)
+hypo.rean = data.frame(nex1=1:max(nex1),frac.rean=1/(1:max(nex1)))
+frac.rean = frac.rean[-1,]
+hypo.rean = hypo.rean[-1,]
+hypo.rean$frac.rean = 1 - hypo.rean$frac.rean
+df.bar = barplot(frac.rean$frac.rean, names.arg=frac.rean$nex1)
+lines(x=df.bar, y=hypo.rean$frac.rean,lwd=2)
+
+#######################################################################################
+## Look at the number of exon1 for cases of dTSS=0
+#######################################################################################
+
+# genes for dTSS=0
+ind0 = which(dTSS==0)
+genes0 = names(dTSS)[ind0]
+
+# number of exon1s for dTSS=0 cases
+nexon1 = sapply(genes0,function(x){
+  inds = which(gencode.firstExon$gene==x)
+  strd = gencode.firstExon$strand[inds][1]
+  if(strd=="+"){e1 = gencode.firstExon$start[inds]}
+  if(strd=="-"){e1 = gencode.firstExon$end[inds]}
+  out = length(unique(e1))
+  return(out)
+})
+
+# hist(nexon1,col="black",breaks=c(0:26))
+
+length(which(nexon1==1))
+length(which(nexon1>1))
+length(nexon1)
 
 #######################################################################################
 ## compare with inferred coords - TTS
@@ -135,10 +216,10 @@ ii = which(abs(d1)==max(abs(d1)))
 long.plus[ii,]
 infr.plus[ii,]
 
-# all data hist (Fig S4c)
+# all data hist
 hist(dTTS/1000, col="black",main="",xlab="dTTS, identified - largest (kb)",ylab="frequency")
 
-# subset hist at 75% quantile (Fig S4d)
+# subset hist
 hist(dTTS[abs(dTTS)<qt]/1000, col="black",main="",xlab="dTTS, identified - largest (kb)",ylab="frequency")
 
 dev.off()
