@@ -23,9 +23,9 @@ library(RColorBrewer)
 fname = "tomtomTFvsTF.txt"
 dat0 = read.table(fname,header=T,stringsAsFactors=F)
 facs = unique(dat0$Query_ID)
-length(facs) # 732
+length(facs) # 735
 dat0 = dat0[dat0$Target_ID %in% facs,]
-length(unique(dat0$Target_ID)) # 732
+length(unique(dat0$Target_ID)) # 735
 dat0 = dat0 %>% filter(p.value<0.001)
 
 # upload mapping between TF motif and database names
@@ -45,7 +45,7 @@ rownames(id.map) = 1:nrow(id.map)
 
 # directory for database TF pwms
 pwm.dir = paste0("/media/wa3j/Seagate2/Documents/PRO/",
-                 "adipogenesis/July2018/atac_time_deg/communities/TF/TF732")
+                 "adipogenesis/July2018/atac_time_deg/communities/TF/TF735")
 
 ##############################################################
 ## generate three column graph format
@@ -338,7 +338,7 @@ dev.off()
 ## output PWMs for tomtom 
 ##############################################################
 
-length(flt.pwm) # 374
+length(flt.pwm) # 378
 
 pwm.out = flt.pwm
 cdir = getwd()
@@ -472,10 +472,10 @@ for(ii in newclust){
 }
 
 # aggregate filtered/clustered TF pwms for plotting
-length(flt.pwm) # 374
-length(clustered) # 17
-length(unclusted) # 357
-length(clustTFs) # 7
+length(flt.pwm) # 378
+length(clustered) # 22
+length(unclusted) # 356
+length(clustTFs) # 9
 flt.pwm.clust = list()
 for(ii in unclusted){
   flt.pwm.clust[[ii]]=flt.pwm[[ii]]
@@ -483,7 +483,7 @@ for(ii in unclusted){
 for(ii in clustTFs){
   flt.pwm.clust[[ii]]=flt.pwm[[ii]]
 }
-length(flt.pwm.clust) # 364
+length(flt.pwm.clust) # 365
 
 # plot filtered/clustered TFs
 filt.clust.plts = list()
@@ -494,7 +494,7 @@ for(ii in names(flt.pwm.clust)){
   filt.clust.plts[[p]] = logo.plt(pwm=mat, title=id)
   p=p+1
 }
-pdf("TF_filteredClust364.pdf", onefile = TRUE, height=9, width=4.5)
+pdf("TF_filteredClust365.pdf", onefile = TRUE, height=9, width=4.5)
 marrangeGrob(grobs=filt.clust.plts, nrow=6, ncol=1, top=NULL)
 dev.off()
 
@@ -504,7 +504,10 @@ dev.off()
 
 # import de novo motif ids (E < 0.1)
 # /nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/motifdb
-fname = "denovo2743.txt"
+# from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/motifdb/denovo2775.txt
+# to=/media/wa3j/Seagate2/Documents/PRO/adipogenesis/July2018/atac_time_deg/communities/TF
+# scp -r wa3j@interactive.hpc.virginia.edu:${from} ${to}
+fname = "denovo2775.txt"
 denovo0 = read.table(fname,header=F,stringsAsFactors=F,sep="\t")
 names(denovo0) = c("denovoid")
 
@@ -524,6 +527,9 @@ for(id in unique(shortid)){
 
 # get mapping between de novo motifs and database TFs
 # see tomtom_denovo_vs_db_array.sh
+# from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomDENOVOvsTF/TFfromDENOVOfiltered.txt
+# to=/media/wa3j/Seagate2/Documents/PRO/adipogenesis/July2018/atac_time_deg/communities/TF
+# scp -r wa3j@interactive.hpc.virginia.edu:${from} ${to}
 fname = "TFfromDENOVOfiltered.txt"
 tomtom_DETF = read.table(fname,header=F,stringsAsFactors=F,sep="\t")
 names(tomtom_DETF) = c("Query_ID",	"Target_ID",	"Optimal_offset",	"pvalue",	"Evalue",
@@ -531,7 +537,7 @@ names(tomtom_DETF) = c("Query_ID",	"Target_ID",	"Optimal_offset",	"pvalue",	"Eva
 tomtom_DETF = tomtom_DETF %>% filter(pvalue < 0.001)
 consensus = sapply(tomtom_DETF$Query_ID,function(x){strsplit(x,"_")[[1]][1]})
 tomtom_DETF = tomtom_DETF %>% mutate(consensus=consensus)
-denovo.flt = unique(tomtom_DETF$Query_ID) # 2466
+denovo.flt = unique(tomtom_DETF$Query_ID) # 2515
 
 # loop through each de novo motif and get the top TF match
 filtered.denovo = c()
@@ -541,8 +547,8 @@ for(ii in 1:length(denovo.flt)){
   ttdat = ttdat[with(ttdat, order(pvalue,Target_ID)),]
   filtered.denovo = rbind(filtered.denovo, ttdat[1,])
 }
-length(unique(filtered.denovo$Query_ID)) # 2466
-length(unique(filtered.denovo$Target_ID)) # 732
+length(unique(filtered.denovo$Query_ID)) # 2515
+length(unique(filtered.denovo$Target_ID)) # 735
 
 # initial annotation for TF clusters
 # motif.community
@@ -555,7 +561,7 @@ for(ii in bad.facs){
   ind = which(motif.community1$community == comm)
   motif.community1 = motif.community1[-ind,]
 }
-length(motif.community1$community %>% unique) # 374
+length(motif.community1$community %>% unique) # 378
 
 # remove all of the unclustered clusters 
 motif.community2 = motif.community1
@@ -565,7 +571,7 @@ for(ii in clustered){
   ind = which(motif.community2$community == comm)
   motif.community2 = motif.community2[-ind,]
 }
-length(motif.community2$community %>% unique) # 357
+length(motif.community2$community %>% unique) # 356
 
 # add back cluster representatives
 motif.community3 = motif.community2
@@ -582,7 +588,7 @@ for(comm in newclust){
   newcom$community = min(oldcoms)
   motif.community3 = rbind(motif.community3, newcom)
 }
-length(motif.community3$community %>% unique) # 364
+length(motif.community3$community %>% unique) # 365
 
 #### get the num of de novo hits for each cluster ###
 motif.community.summary = c()
@@ -625,8 +631,8 @@ for(ii in 1:nrow(motif.community.summary)){
   new = motif.community3[ind,]
   motif.community4 = rbind(motif.community4, new)
 }
-dim(motif.community4) # 546
-length(unique(motif.community4$community)) # 235
+dim(motif.community4) # 523
+length(unique(motif.community4$community)) # 211
 
 # plot filtered/clustered TFs
 final.plts = list()
@@ -637,7 +643,7 @@ for(ii in names(flt.pwm.clust.final)){
   final.plts[[p]] = logo.plt(pwm=mat, title=id)
   p=p+1
 }
-pdf("TF_final235.pdf", onefile = TRUE, height=9, width=4.5)
+pdf("TF_final211.pdf", onefile = TRUE, height=9, width=4.5)
 marrangeGrob(grobs=final.plts, nrow=6, ncol=1, top=NULL)
 dev.off()
 
@@ -664,10 +670,10 @@ datID = datID[,order(apply(datID,2,function(x)length(which(x!=0))),decreasing=T)
 datTF = datTF[,order(apply(datTF,2,function(x)length(which(x!=0))),decreasing=T)]
 write.table(dat,"TFclusters.txt",col.names=T,row.names=F,sep="\t")
 
-# generate pwm files for the 235 TF motifs of interest
+# generate pwm files for the 211 TF motifs of interest
 pwm.out = flt.pwm.clust.final
 cdir = getwd()
-pwm.dir = paste0(cdir,"/TF235")
+pwm.dir = paste0(cdir,"/TF211")
 setwd(pwm.dir)
 for(ii in 1:length(pwm.out)){
   tf = names(pwm.out)[ii]
@@ -678,7 +684,7 @@ for(ii in 1:length(pwm.out)){
 setwd(cdir)
 
 # save workspace
-# save.image("TFanalysis_20190916.RData")
+# save.image("TFanalysis_20191021.RData")
 
 # next: TFfimo.sh
 

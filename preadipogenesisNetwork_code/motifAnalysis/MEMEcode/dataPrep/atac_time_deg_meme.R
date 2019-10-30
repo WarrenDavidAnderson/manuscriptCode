@@ -5,7 +5,6 @@ library(ggplot2)
 library(bigWig)
 library(prodlim)
 
-setwd("/run/user/1001/gvfs/smb-share:server=home1.virginia.edu,share=cphgdesk/users/wa3j/MGlab/Analysis/Adipogenesis/ATAC_time_DEG")
 source("atac_norm_functions.R")
 
 dir = paste0("/media/wa3j/Seagate2/Documents/PRO/",
@@ -34,7 +33,7 @@ fc.un = 0.25
 ############################################################
 
 # peak and summit coordinates (summits.bed, from empiricalSummits.R)
-load("ATACsummits_20190914.RData")
+load("ATACsummits_20191013.RData")
 bed0 = summits.bed
 
 # chrom sizes
@@ -53,18 +52,19 @@ chrm.size[,2:3] = apply(chrm.size[,2:3],2,function(x){data.matrix(x) %>% as.nume
 
 # filter chromosomes
 unique(bed0$chr)
-dim(bed0) # 86345
+dim(bed0) # 157049
 chr.keep = paste0("chr",c(1:19))
 bed0 = bed0[bed0$chr %in% chr.keep,]
-dim(bed0) # 83716
+dim(bed0) # 152729
 
 # look at peak distances
 d = bed0$end - bed0$start
+hist(d,col="black",xlab="atac peak dist (bp)")
 median(d)
 quantile(d)
 
 # save coords
-save(bed0, file="bed.map20190827.RData")
+save(bed0, file="bed.map20191014.RData")
 
 
 ############################################################
@@ -73,7 +73,7 @@ save(bed0, file="bed.map20190827.RData")
 
 # atac data mapped to peak regions
 bigWig.path = paste0("/media/wa3j/Seagate2/Documents/PRO/adipogenesis",
-                     "/July2018/atac_bw_20181127/atac_all")
+                     "/July2018/atac_bw_20191014/atac_all")
 file.prefix = "3T3_"
 file.suffix = ".bigWig"
 min.length = 1
@@ -101,9 +101,6 @@ sizeFactors(deseq_obj_sizefac) = size_factors
 # by the respective size factor
 head(sapply(c(1:24),function(x){reads0[,x]/size_factors[x]})[,1:5])
 head(counts(deseq_obj_sizefac, normalized=TRUE)[,1:5])
-
-# save.image("atac.RData")
-# load("atac.RData")
 
 ############################################################
 ## adjust data organization
@@ -149,6 +146,8 @@ deseq_obj_preadip = DESeqDataSetFromMatrix(countData=counts_preadip,
                                            colData=colData_preadip, 
                                            design=~conditions_preadip)
 sizeFactors(deseq_obj_preadip) = sizefac_preadip
+
+# save(deseq_obj_preadip, file="atacDeseq.RData")
 
 ############################################################
 ## generate all pairwise comparisons
@@ -220,6 +219,7 @@ pk.coords.for.meme = function(res=NULL, pk.dist=NULL){
 } # pk.coords.for.meme
 
 # loop through all pairwise data and write output for meme
+nosig = c()
 for(ii in 1:length(res.pairs)){
   
   # basic annotation
@@ -232,7 +232,7 @@ for(ii in 1:length(res.pairs)){
   
   # if there are more insignificant peaks, use the number of sig peaks
   # select those with the highest FDRs
-  if(length(indsig)==0){next}
+  if(length(indsig)==0){nosig = c(nosig, comp_ii); next}
   if(length(ind.un) > length(indsig)){ind.un = rev(ind.un)[1:length(indsig)]}
   
   # get macs2 data for sig and unsig peaks

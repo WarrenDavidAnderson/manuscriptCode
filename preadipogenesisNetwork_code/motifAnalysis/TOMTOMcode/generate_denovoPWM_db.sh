@@ -6,6 +6,7 @@
 
 ####################################################
 ## get pswms for the differential peak motifs
+# run using a .sh script
 ####################################################
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/motifdb
@@ -157,6 +158,7 @@ cd ${dir}
 
 # locations for all meme motif comparison data
 f1=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/meme_dynDat/meme_pairwise_memeResults/memeAll
+
 
 #################
 # loop through dynamic
@@ -318,7 +320,7 @@ done
 done
 done
 
-
+# end of .sh file (e.g., aggregate.sh - run with this: sh aggregate.sh)
 
 ####################################################
 ## generate pwm files for each de novo motif

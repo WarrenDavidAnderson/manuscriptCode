@@ -5,7 +5,6 @@
 
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/bkg_0.1_classic
-dir=/scratch/wa3j/deseq_res/bkg_0.1_classic
 cd ${dir}
 
 ####################################################
@@ -14,7 +13,6 @@ cd ${dir}
 
 # main directory
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/bkg_0.1_classic
-dir=/scratch/wa3j/deseq_res/bkg_0.1_classic
 cd ${dir}
 
 # directory for meme data
@@ -52,7 +50,6 @@ done
 
 subdir=bkg_0.1_classic_pairwise_memeResults
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/bkg_0.1_classic
-dir=/scratch/wa3j/deseq_res/bkg_0.1_classic
 cd ${dir}/${subdir}
 
 # document meme run conditions
@@ -84,7 +81,7 @@ sed -i "/\b\product\b/d" ${ii}
 done
 
 # first use R to loop through data and set identity all motifs of interest
-module load gcc/7.1.0 openmpi/2.1.5 R/3.5.3
+module load gcc/7.1.0 openmpi/3.1.4 R/3.5.3
 
 Eval.thresh = 0.1 # E-value threshold
 
@@ -123,8 +120,8 @@ while( nrow(motifs.all)>0 ){
 }
 motifs.unq = as.data.frame(motifs.unq,stringsAsFactors=FALSE)
 names(motifs.unq) = c("motif","width","nsites","llr","Eval","ncond","condits")
-nrow(Edat) # 98 motifs
-nrow(motifs.unq) # 91 unique motifs
+nrow(Edat) # 74 motifs
+nrow(motifs.unq) # 66 unique motifs
 motifs.unq$condits = as.character(motifs.unq$condits)
 
 # save.image("meme.res.for.tomtom.RData")
@@ -140,7 +137,6 @@ write.table(Edat,fname,quote=F,sep="\t",col.names=T,row.names=F)
 ####################################################
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/bkg_0.1_classic/bkg_0.1_classic_pairwise_memeResults
-dir=/scratch/wa3j/deseq_res/bkg_0.1_classic/bkg_0.1_classic_pairwise_memeResults
 cd ${dir}
 mkdir pswm
 
@@ -153,8 +149,6 @@ cd ${dir}/pswm
 
 -bash-4.2$pwd
 /nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/bkg_0.1_classic/bkg_0.1_classic_pairwise_memeResults/pswm
-
-/scratch/wa3j/deseq_res/bkg_0.1_classic/bkg_0.1_classic_pairwise_memeResults/pswm
 
 
 

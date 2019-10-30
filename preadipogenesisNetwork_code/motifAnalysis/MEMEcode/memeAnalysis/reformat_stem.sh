@@ -8,7 +8,7 @@
 cd /nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/meme_dynDat/dyn_orig 
 mkdir newFiles
 
-module load gcc/7.1.0 openmpi/2.1.5 R/3.5.3
+module load gcc/7.1.0 openmpi/3.1.4 R/3.5.3
 
 # directory info
 main.dir = paste0("/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/meme_dynDat/dyn_orig")

@@ -7,12 +7,11 @@ dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_
 cd ${dir}
 
 cat denovoPWM.txt | grep MOTIF | wc -l
-cat denovoPWM.txt | grep MOTIF | awk -F" " '{print $2}' > denovo2743.txt
+cat denovoPWM.txt | grep MOTIF | awk -F" " '{print $2}' > denovo2775.txt
 
 # move motif list
-from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/motifdb/denovo2743.txt
+from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/motifdb/denovo2775.txt
 to=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomDENOVOvsTF
-to=/scratch/wa3j/tomtomDENOVOvsTF
 scp -r ${from} ${to}
 
 
@@ -23,16 +22,15 @@ scp -r ${from} ${to}
 ####################################################
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomDENOVOvsTF
-dir=/scratch/wa3j/tomtomDENOVOvsTF
 cd ${dir}
 
 # R code to generate a set of motif lists
 # each list will be processed with an individual job
-module load gcc/7.1.0 openmpi/2.1.5 R/3.5.3
+module load gcc/7.1.0 openmpi/3.1.4 R/3.5.3
 
 narray = 59
 library(dplyr)
-motifs = read.table("denovo2743.txt",stringsAsFactors=F,header=F)
+motifs = read.table("denovo2775.txt",stringsAsFactors=F,header=F)
 nmotif = nrow(motifs)
 motif.per = floor( nmotif / narray )
 for(ii in 1:narray){
@@ -54,14 +52,6 @@ for(ii in 1:narray){
 }
 
 
-#### analysis in scratch
-from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomDENOVOvsTF
-to=/scratch/wa3j
-cp -r $from $to
-
-cd /scratch/wa3j/tomtomDENOVOvsTF
-
-
 ##############################################################
 ## slurm script, tomtom_main.sh
 ##############################################################
@@ -73,7 +63,6 @@ cd /scratch/wa3j/tomtomDENOVOvsTF
 #SBATCH --partition=standard
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomDENOVOvsTF
-dir=/scratch/wa3j/tomtomDENOVOvsTF
 cd ${dir}
 
 # sbatch --array=1-60 tomtom_main.sh
@@ -93,7 +82,6 @@ ${dir}/tomtom_run.sh ${cnt}
 cnt="$1"
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomDENOVOvsTF
-dir=/scratch/wa3j/tomtomDENOVOvsTF
 cd ${dir}
 
 # subdirectory for specific analyses
@@ -105,7 +93,7 @@ cd condit_id_${cnt}
 outfile=tomtom_${cnt}_denovo.txt
 
 # directory with de novo motif pwms
-mdir=/nv/vol192/civeleklab/warren/mglab/atac_wafd/3t3_atac1-3/motifs/meme/tomtom_denovo/motifdb/alldenovo
+mdir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/motifdb/alldenovo
 
 # specify motifs files
 motifs=$(cat motifs_${cnt}.txt)
@@ -159,6 +147,9 @@ cp ${outfile} ..
 ## generate summary file with all tomtom results
 ####################################################
 
+dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomDENOVOvsTF
+cd ${dir}
+
 # tomtom data and header
 outfile=tomtomDenovoTFall.txt
 printf '%s\n' 'Query_ID Target_ID Optimal_offset p-value E-value q-value Overlap Query_consensus Target_consensus Orientation' | tr ' ' '\t' > ${outfile}
@@ -177,9 +168,8 @@ done
 ####################################################
 
 cd /nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomDENOVOvsTF/res
-cd /scratch/wa3j/tomtomDENOVOvsTF/res
 
-module load gcc/7.1.0 openmpi/2.1.5 R/3.5.3
+module load gcc/7.1.0 openmpi/3.1.4 R/3.5.3
 
 library(dplyr)
 fname = "tomtomDenovoTFall.txt"
@@ -189,9 +179,9 @@ dat0 = read.table(fname,header=T,stringsAsFactors=F,sep="\t")
 # only one motif did not match
 thresh = 0.001
 dat1 = dat0 %>% filter(p.value < 0.001)
-denovo.all = unique(dat0$Query_ID) # 2743
-denovo.flt = unique(dat1$Query_ID) # 2466
-unmatched = denovo.all[!(denovo.all %in% denovo.flt)] # 277
+denovo.all = unique(dat0$Query_ID) # 2775
+denovo.flt = unique(dat1$Query_ID) # 2515
+unmatched = denovo.all[!(denovo.all %in% denovo.flt)] # 260
 
 # loop through each de novo motif and get the top TF match
 filtered = c()
@@ -202,10 +192,9 @@ for(ii in 1:length(denovo.flt)){
 	filtered = rbind(filtered, ttdat[1,])
 }
 
-# 732 factor PWMs for 2466 motifs
+# 735 factor PWMs for 2775 motifs
 length(unique(filtered$Target_ID))
 hist(-log10(filtered$p.value))
-max(filtered$p.value) # 0.000999632
 
 # output information for downstream analysis
 fname = "TFfromDENOVO.txt"
@@ -226,16 +215,16 @@ cp *.txt ..
 
 # main data dir
 cd /nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomDENOVOvsTF
-cd /scratch/wa3j/tomtomDENOVOvsTF
+
 
 ####################################################
 ## next steps 
 ####################################################
 
-# match 751 TFs (TFfromDENOVO.txt) against each other and cluster
+# match 735 TFs (TFfromDENOVO.txt) against each other and cluster
 # eachVersusAllTF.sh
 
-# match 288 unmatched de novo motifs against all databases 
+# match 260 unmatched de novo motifs against all databases 
 # newDB_all.sh
 # tomtom_denovo_vs_db_array_ALL.sh
 

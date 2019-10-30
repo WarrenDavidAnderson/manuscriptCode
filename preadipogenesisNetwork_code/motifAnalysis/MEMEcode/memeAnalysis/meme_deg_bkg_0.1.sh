@@ -1,5 +1,5 @@
 
-# /scratch/wa3j/deseq_res
+# cd /nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res
 
 ##############################################################
 ## slurm script, bkg_de_slurm.sh
@@ -11,11 +11,11 @@
 #SBATCH -A CivelekLab
 #SBATCH --ntasks=1
 #SBATCH --time=96:00:00
+#SBATCH --mem 128000
 #SBATCH --partition=standard
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/bkg_0.1_de
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/dreg_for_meme/bkg_0.1_de
-dir=/scratch/wa3j/deseq_res/bkg_0.1_de
 cd ${dir}
 
 # sbatch --array=1-20 bkg_de_slurm.sh
@@ -34,7 +34,6 @@ cnt="$1"
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/bkg_0.1_de
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/dreg_for_meme/bkg_0.1_de
-dir=/scratch/wa3j/deseq_res/bkg_0.1_de
 cd ${dir}
 
 # subdirectory for specific analyses

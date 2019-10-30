@@ -73,7 +73,7 @@ mv *Eval.txt* memeEval
 mv *meme.txt* memeAll
 
 cd ${dir}/${subdir}/memeEval
-cd ${dir}/${subdir}/memeAll
+
 
 # remove all "Stopped because motif E-value >" lines
 # remove all "objective function:" lines
@@ -85,7 +85,7 @@ sed -i "/\b\product\b/d" ${ii}
 done
 
 # first use R to loop through data and set identity all motifs of interest
-module load gcc/7.1.0 openmpi/2.1.5 R/3.5.3
+module load gcc/7.1.0 openmpi/3.1.4 R/3.5.3
 
 Eval.thresh = 0.1 # E-value threshold
 
@@ -124,8 +124,8 @@ while( nrow(motifs.all)>0 ){
 }
 motifs.unq = as.data.frame(motifs.unq,stringsAsFactors=FALSE)
 names(motifs.unq) = c("motif","width","nsites","llr","Eval","ncond","condits")
-nrow(Edat) # 96 motifs
-nrow(motifs.unq) # 87 unique motifs
+nrow(Edat) # 187 motifs
+nrow(motifs.unq) # 156 unique motifs
 motifs.unq$condits = as.character(motifs.unq$condits)
 
 # save.image("meme.res.for.tomtom.RData")
@@ -153,8 +153,6 @@ cd ${dir}/pswm
 
 -bash-4.2$pwd
 /nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/dreg_for_meme/nobkg_0.1_classic/nobkg_0.1_classic_pairwise_memeResults/pswm
-
-
 
 
 

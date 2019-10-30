@@ -4,8 +4,7 @@
 ####################################################
 
 
-dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/bkg_0.1_de
-dir=/scratch/wa3j/deseq_res/bkg_0.1_de
+dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/dreg_for_meme/bkg_0.1_de
 cd ${dir}
 
 ####################################################
@@ -13,8 +12,7 @@ cd ${dir}
 ####################################################
 
 # main directory
-dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/bkg_0.1_de
-dir=/scratch/wa3j/deseq_res/bkg_0.1_de
+dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/dreg_for_meme/bkg_0.1_de
 cd ${dir}
 
 # directory for meme data
@@ -51,8 +49,7 @@ done
 ####################################################
 
 subdir=bkg_0.1_de_pairwise_memeResults
-dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/bkg_0.1_de
-dir=/scratch/wa3j/deseq_res/bkg_0.1_de
+dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/dreg_for_meme/bkg_0.1_de
 cd ${dir}/${subdir}
 
 # document meme run conditions
@@ -85,7 +82,7 @@ done
 
 # first use R to loop through data and set identity all motifs of interest
 # load modules
-module load gcc/7.1.0 openmpi/2.1.5 R/3.5.3
+module load gcc/7.1.0 openmpi/3.1.4 R/3.5.3
 
 Eval.thresh = 0.1 # E-value threshold
 
@@ -124,8 +121,8 @@ while( nrow(motifs.all)>0 ){
 }
 motifs.unq = as.data.frame(motifs.unq,stringsAsFactors=FALSE)
 names(motifs.unq) = c("motif","width","nsites","llr","pval","Eval","ncond","condits")
-nrow(Edat) # 102 motifs
-nrow(motifs.unq) # 82 unique motifs
+nrow(Edat) # 101 motifs
+nrow(motifs.unq) # 97 unique motifs
 motifs.unq$condits = as.character(motifs.unq$condits)
 
 # save.image("meme.res.for.tomtom.RData")
@@ -140,8 +137,7 @@ write.table(Edat,fname,quote=F,sep="\t",col.names=T,row.names=F)
 ## isolate key results for downstream analysis
 ####################################################
 
-dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/bkg_0.1_de/bkg_0.1_de_pairwise_memeResults
-dir=/scratch/wa3j/deseq_res/bkg_0.1_de/bkg_0.1_de_pairwise_memeResults
+dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/dreg_for_meme/bkg_0.1_de/bkg_0.1_de_pairwise_memeResults
 cd ${dir}
 mkdir pswm
 
@@ -152,8 +148,8 @@ cp ${dir}/memeEval/*RData ${dir}/pswm
 cd ${dir}/pswm
 
 -bash-4.2$pwd
-/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/bkg_0.1_de/bkg_0.1_de_pairwise_memeResults/pswm
+/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/dreg_for_meme/bkg_0.1_de/bkg_0.1_de_pairwise_memeResults/pswm
 
-/scratch/wa3j/deseq_res/bkg_0.1_de/bkg_0.1_de_pairwise_memeResults/pswm
+
 
 

@@ -1,4 +1,12 @@
 
+
+
+# move data
+from=/media/wa3j/Seagate2/Documents/PRO/adipogenesis/July2018/atac_time_deg/dynamicPks/*.bed
+to=wa3j@interactive.hpc.virginia.edu:/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/meme_dynDat
+scp -r $from $to
+
+
 ##############################################################
 ## slurm script, dyn_slurm.sh
 ##############################################################
@@ -7,6 +15,7 @@
 #SBATCH -A CivelekLab
 #SBATCH --ntasks=1
 #SBATCH --time=96:00:00
+#SBATCH --mem 128000
 #SBATCH --partition=standard
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/meme_dynDat

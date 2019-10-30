@@ -22,12 +22,10 @@
 
 # set directory for tomtom and go there
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF
-dir=/scratch/wa3j/tomtomTFvsTF
 cd ${dir}
 
 # copy data
 from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomDENOVOvsTF
-from=/scratch/wa3j/tomtomDENOVOvsTF
 cp ${from}/TFfromDENOVO.txt ${dir}
 
 
@@ -36,10 +34,9 @@ cp ${from}/TFfromDENOVO.txt ${dir}
 ####################################################
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF
-dir=/scratch/wa3j/tomtomTFvsTF
 cd ${dir}
 
-module load gcc/7.1.0 openmpi/2.1.5 R/3.5.3
+module load gcc/7.1.0 openmpi/3.1.4 R/3.5.3
 
 # read motif key into R
 library(dplyr)
@@ -78,7 +75,6 @@ for(ii in 1:narray){
 #SBATCH --partition=standard
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF
-dir=/scratch/wa3j/tomtomTFvsTF
 cd ${dir}
 
 # sbatch --array=1-50 tomtom_main.sh
@@ -98,7 +94,6 @@ ${dir}/tomtom_run.sh ${cnt}
 cnt="$1"
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF
-dir=/scratch/wa3j/tomtomTFvsTF
 cd ${dir}
 
 # subdirectory for specific analyses
@@ -169,7 +164,6 @@ done
 ####################################################
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/res
-dir=/scratch/wa3j/tomtomTFvsTF/res
 cd ${dir}
 
 # tomtom data and header
@@ -187,12 +181,13 @@ done
 
 
 ####################################################
-## aggregate tomtom outputs (motif_communities_TF_20190314.R)
+## aggregate tomtom outputs 
 ####################################################
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/res
-dir=/scratch/wa3j/tomtomTFvsTF/res
 cd ${dir}
+
+module load gcc/7.1.0 openmpi/3.1.4 R/3.5.3
 
 # load data
 library(dplyr)
@@ -201,9 +196,9 @@ dat0 = read.table(fname,header=T,stringsAsFactors=F,sep="\t")
 
 # isolate data for the factors that matched de novo motifs
 facs = unique(dat0$Query_ID)
-length(facs) # 732
+length(facs) # 735
 dat0 = dat0[dat0$Target_ID %in% facs,]
-length(unique(dat0$Target_ID)) # 732
+length(unique(dat0$Target_ID)) # 735
 
 # filter out poorly matched motifs
 # only one motif did not match
@@ -218,7 +213,6 @@ write.table(dat1,fname,sep="\t",quote=F,col.names=T,row.names=F)
 ####################################################
 
 cd /nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF
-cd /scratch/wa3j/tomtomTFvsTF
 
 # set motifs for analysis
 motifs=$(cat TFfromDENOVO.txt)
@@ -244,8 +238,8 @@ rm part
 done
 
 # move data
-mkdir TF732
-mv *PWM_* TF732
+mkdir TF735
+mv *PWM_* TF735
 
 # revise file names 
 for ii in *.txt
@@ -259,20 +253,17 @@ done
 ## analysis of tomtom output
 ####################################################
 
-/scratch/wa3j/tomtomTFvsTF/TF732
+/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF
 
 # copy to local
-from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo2/tomtomTFvsTF/res/tomtomTFvsTF.txt
-from=/scratch/wa3j/tomtomTFvsTF/res/tomtomTFvsTF.txt
+from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/res/tomtomTFvsTF.txt
 to=/media/wa3j/Seagate2/Documents/PRO/adipogenesis/July2018/atac_time_deg/communities/TF
 scp -r wa3j@interactive.hpc.virginia.edu:${from} ${to}
 
-from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo2/tomtomTFvsTF/TF679
-from=/scratch/wa3j/tomtomTFvsTF/TF732
+from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/TF735
 to=/media/wa3j/Seagate2/Documents/PRO/adipogenesis/July2018/atac_time_deg/communities/TF
 scp -r wa3j@interactive.hpc.virginia.edu:${from} ${to}
 
-from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo2/TFdb/TFreduced/motif.id.key.txt
 from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/motif_databases/TFreduced/motif.id.key.txt
 to=/media/wa3j/Seagate2/Documents/PRO/adipogenesis/July2018/atac_time_deg/communities/TF
 scp -r wa3j@interactive.hpc.virginia.edu:${from} ${to}

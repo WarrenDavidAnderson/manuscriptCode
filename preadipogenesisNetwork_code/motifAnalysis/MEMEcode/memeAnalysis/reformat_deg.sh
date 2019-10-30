@@ -8,14 +8,19 @@ from=/media/wa3j/Seagate2/Documents/PRO/adipogenesis/July2018/atac_time_deg/meme
 to=wa3j@interactive.hpc.virginia.edu:/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res
 scp -r $from $to
 
+from=/media/wa3j/Seagate2/Documents/PRO/adipogenesis/July2018/dREG/results_20181222/dreg_for_meme
+to=wa3j@interactive.hpc.virginia.edu:/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme
+scp -r $from $to
+
 
 ######################################################
 ## get all individual bed files in the same place
 ######################################################
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res
-dir=/scratch/wa3j/deseq_res/meme_degDat
 cd ${dir}
+
+cd /nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/dreg_for_meme
 
 folders=$(ls -d */)
 for ii in ${folders}
@@ -31,11 +36,12 @@ done
 ######################################################
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res
-dir=/scratch/wa3j/deseq_res/meme_degDat
 cd ${dir}
 
+cd /nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/dreg_for_meme
+
 # load modules
-module load gcc/7.1.0 openmpi/2.1.5 R/3.5.3
+module load gcc/7.1.0 openmpi/3.1.4 R/3.5.3
 
 # files with condition ids
 f.dn = list.files(pattern="downsig")

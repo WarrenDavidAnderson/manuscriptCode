@@ -48,6 +48,9 @@ dreg$center[ind.lo] = dreg0$center[ind.lo] + (dreg0$start-dreg0$center)[ind.lo] 
 hist(dreg$end - dreg$center)
 hist(dreg$center - dreg$start)
 
+# bed.map = dreg
+# save(bed.map, file="bed.mapDreg.RData")
+
 # separate positive and negative regions
 # negative: start to summit
 # positive: summit to end
@@ -118,8 +121,11 @@ reads0 = get.counts.interval(bed.plus=dreg.plus,
                              file.prefix=file.prefix,
                              file.suffix=file.suffix)
 
-# save.image("reads.RData")
-# load("reads.RData")
+# apply this row name ajustment to generate output for motif enrichment analysis
+# do not apply this for generating coordinates for motif identification 
+# see get.map.from.res() below
+# rownamen = paste0(dreg$chr,":",dreg$start,"-",dreg$end)
+# rownames(reads0) = rownamen
 
 ############################################################
 ## normalize raw counts to size factors, generate DESeq object
@@ -161,6 +167,8 @@ deseq_obj = DESeqDataSetFromMatrix(countData=counts,
                                    colData=colData, design=~conditions)
 sizeFactors(deseq_obj) = estimateSizeFactorsForMatrix(counts)
 
+# deseq_obj_preadip = deseq_obj
+# save(deseq_obj_preadip, file="dregDeseq.RData")
 
 ############################################################
 ## generate all pairwise comparisons
@@ -251,3 +259,5 @@ for(ii in 1:length(res.pairs)){
   setwd(dir)
   
 } # ii
+
+

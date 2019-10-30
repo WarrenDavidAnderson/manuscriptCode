@@ -16,14 +16,12 @@
 ####################################################
 
 # set directory for tomtom and go there
-dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo2/tomtomTFvsTF/TFvTFaverage
-dir=/scratch/wa3j/TFvTFaverage
+dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/TFvTFaverage
 cd ${dir}
 
 # copy data
 from=/media/wa3j/Seagate2/Documents/PRO/adipogenesis/July2018/atac_time_deg/communities/TF/center_av_pwm
-to=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo2/tomtomTFvsTF/TFvTFaverage
-to=/scratch/wa3j/TFvTFaverage
+to=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/TFvTFaverage
 scp -r ${from} wa3j@interactive.hpc.virginia.edu:${to}
 
 
@@ -31,15 +29,14 @@ scp -r ${from} wa3j@interactive.hpc.virginia.edu:${to}
 ## generate motif text files for array implementation
 ####################################################
 
-dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo2/tomtomTFvsTF/TFvTFaverage
-dir=/scratch/wa3j/TFvTFaverage
+dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/TFvTFaverage
 cd ${dir}/center_av_pwm
 
 # get ids
 ls *.txt | awk -F".txt" '{print $1}' > motif.ids
 
 # read motif key into R
-module load gcc/7.1.0 openmpi/2.1.5 R/3.5.3
+module load gcc/7.1.0  openmpi/3.1.4 R/3.5.3
 library(dplyr)
 motifs = read.table("motif.ids",header=F,stringsAsFactors=F)[,1]
 
@@ -72,8 +69,7 @@ cd ..
 ## generate meme database formated file
 ##############################################################
 
-dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo2/tomtomTFvsTF/TFvTFaverage
-dir=/scratch/wa3j/TFvTFaverage
+dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/TFvTFaverage
 cd ${dir}/center_av_pwm
 
 # create file header  
@@ -107,11 +103,10 @@ mv TFavDB.txt ..
 #!/bin/bash
 #SBATCH -A CivelekLab
 #SBATCH --ntasks=1
-#SBATCH --time=8:00:00
+#SBATCH --time=16:00:00
 #SBATCH --partition=standard
 
-dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo2/tomtomTFvsTF/TFvTFaverage
-dir=/scratch/wa3j/TFvTFaverage
+dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/TFvTFaverage
 cd ${dir}
 
 # sbatch --array=1-50 tomtom_main.sh
@@ -130,8 +125,7 @@ ${dir}/tomtom_run.sh ${cnt}
 
 cnt="$1"
 
-dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo2/tomtomTFvsTF/TFvTFaverage
-dir=/scratch/wa3j/TFvTFaverage
+dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/TFvTFaverage
 cd ${dir}
 
 # subdirectory for specific analyses
@@ -201,8 +195,7 @@ done
 ## generate summary file with all tomtom results
 ####################################################
 
-dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo2/tomtomTFvsTF/TFvTFaverage/res
-dir=/scratch/wa3j/TFvTFaverage/res
+dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/TFvTFaverage/res
 cd ${dir}
 
 # tomtom data and header
@@ -223,12 +216,11 @@ done
 ## analysis of tomtom output
 ####################################################
 
-dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo2/tomtomTFvsTF/TFvTFaverage/res
-dir=/scratch/wa3j/TFvTFaverage/res
+dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/TFvTFaverage/res
+cd ${dir}
 
 # copy to local
-from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo2/tomtomTFvsTF/TFvTFaverage/res/tomtomTFAVvsTFAV.txt
-from=/scratch/wa3j/TFvTFaverage/res/tomtomTFAVvsTFAV.txt
+from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/tomtom_denovo/tomtomTFvsTF/TFvTFaverage/tomtomTFAVvsTFAV.txt
 to=/media/wa3j/Seagate2/Documents/PRO/adipogenesis/July2018/atac_time_deg/communities/TF
 scp -r wa3j@interactive.hpc.virginia.edu:${from} ${to}
 

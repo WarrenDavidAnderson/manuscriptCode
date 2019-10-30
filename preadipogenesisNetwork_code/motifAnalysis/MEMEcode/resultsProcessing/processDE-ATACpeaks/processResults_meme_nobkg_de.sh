@@ -5,7 +5,6 @@
 
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/nobkg_0.1_de
-dir=/scratch/wa3j/deseq_res/nobkg_0.1_de
 cd ${dir}
 
 
@@ -15,7 +14,6 @@ cd ${dir}
 
 # main directory
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/nobkg_0.1_de
-dir=/scratch/wa3j/deseq_res/nobkg_0.1_de
 cd ${dir}
 
 # directory for meme data
@@ -53,7 +51,6 @@ done
 
 subdir=nobkg_0.1_de_pairwise_memeResults
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/nobkg_0.1_de
-dir=/scratch/wa3j/deseq_res/nobkg_0.1_de
 cd ${dir}/${subdir}
 
 # document meme run conditions
@@ -85,7 +82,7 @@ sed -i "/\b\product\b/d" ${ii}
 done
 
 # first use R to loop through data and set identity all motifs of interest
-module load gcc/7.1.0 openmpi/2.1.5 R/3.5.3
+module load gcc/7.1.0 openmpi/3.1.4 R/3.5.3
 
 Eval.thresh = 0.1 # E-value threshold
 
@@ -124,8 +121,8 @@ while( nrow(motifs.all)>0 ){
 }
 motifs.unq = as.data.frame(motifs.unq,stringsAsFactors=FALSE)
 names(motifs.unq) = c("motif","width","nsites","llr","pval","Eval","ncond","condits")
-nrow(Edat) # 876 motifs
-nrow(motifs.unq) # 574 unique motifs
+nrow(Edat) # 878 motifs
+nrow(motifs.unq) # 543 unique motifs
 motifs.unq$condits = as.character(motifs.unq$condits)
 
 # save.image("meme.res.for.tomtom.RData")
@@ -141,7 +138,6 @@ write.table(Edat,fname,quote=F,sep="\t",col.names=T,row.names=F)
 ####################################################
 
 dir=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/meme/deseq_res/nobkg_0.1_de/nobkg_0.1_de_pairwise_memeResults
-dir=/scratch/wa3j/deseq_res/nobkg_0.1_de/nobkg_0.1_de_pairwise_memeResults
 cd ${dir}
 mkdir pswm
 
