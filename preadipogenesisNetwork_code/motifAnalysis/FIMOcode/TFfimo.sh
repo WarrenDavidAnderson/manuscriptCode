@@ -199,7 +199,7 @@ dir=/scratch/wa3j/TFfimo
 cd ${dir}
 
 # param
-nmatch=500000
+nmatch=750000
 
 # data directory
 datdir=condit_id_${cnt}
@@ -221,12 +221,10 @@ cd ${dir}
 ## get the number of sites and highest pval for each motif
 ####################################################
 
-dir=/scratch/wa3j/TFfimo/f500000
 dir=/scratch/wa3j/TFfimo/f750000
 cd ${dir}
 
 # param
-nmatch=500000
 nmatch=750000
 outfile=fimo.summary.${nmatch}
 
@@ -250,7 +248,6 @@ done
 ## isolate sites of interest based on fimo summary
 ####################################################
 
-dir=/scratch/wa3j/TFfimo/f500000
 dir=/scratch/wa3j/TFfimo/f750000
 cd ${dir}
 
@@ -261,7 +258,6 @@ fname = list.files(pattern="fimo.summary")
 dat = read.table(fname,header=T,sep=" ",stringsAsFactors=F)
 
 # plot
-# pdf("pval50k.pdf"); par(mfrow=c(2,2))
 pdf("pval75k.pdf"); par(mfrow=c(2,2))
 plot(-log10(dat$highp), log10(dat$nsites)); abline(h=6.3)
 plot(dat$highp, dat$nsites)
@@ -270,13 +266,6 @@ dev.off()
 # identify the outliers in pval for motif mapping
 # consider these motifs for removal
 dat[which(log10(dat$nsites)>6.3),]
-
-# 50k
-        motif  nsites    highp
-45  motif7252 4874797 1.05e-03
-121 motif8448 2592191 5.03e-06
-136 motif8629 3219029 5.48e-09
-194 motif8633 2018510 7.90e-08
 
 # 75k
         motif  nsites    highp
@@ -292,7 +281,6 @@ dat[which(log10(dat$nsites)>6.3),]
 ## generate bw and bed files for fimo data
 ####################################################
 
-cd /scratch/wa3j/TFfimo/f500000
 cd /scratch/wa3j/TFfimo/f750000
 
 # set id files for the array job
@@ -314,7 +302,6 @@ wget http://hgdownload.cse.ucsc.edu/goldenPath/mm10/bigZips/mm10.chrom.sizes
 #SBATCH --mem=128G
 #SBATCH --partition=standard
 
-dir=/scratch/wa3j/TFfimo/f500000
 dir=/scratch/wa3j/TFfimo/f750000
 cd ${dir}
 
@@ -333,7 +320,6 @@ cnt="$1"
 # modules
 module load bedtools ucsc-tools/3.7.4
 
-dir=/scratch/wa3j/TFfimo/f500000
 dir=/scratch/wa3j/TFfimo/f750000
 cd ${dir}
 
@@ -350,33 +336,12 @@ rm fimo0_${motifid}.bed
 
 ####################################################
 ## move data for local analysis
-## note. 750k was used for all analyses - update above
+## note. 750k was used for all analyses 
 ####################################################
 
 
-mkdir fimo_bigWig1p5M
-mv *.bigWig* fimo_bigWig1p5M
-
-mkdir fimo_bigWig2M
-mv *.bigWig* fimo_bigWig2M
-
-from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/TFfimo/res/summary750k/fimo_bed750k
-to=/media/wa3j/Seagate2/Documents/PRO/adipogenesis/July2018/atac_time_deg/motifEnrich
-scp -r wa3j@interactive.hpc.virginia.edu:${from} ${to}
-
-# data loc
-/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/TFfimo/res/summary1M/fimo_bigWig1M
-/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/TFfimo/res/summary750k/fimo_bigWig750k
-/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/TFfimo/res/summary1p5M/fimo_bigWig1p5M
-/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/TFfimo/res/summary2M/fimo_bigWig2M
-
-# copy data for local analysis
-to=/media/wa3j/Seagate2/Documents/PRO/adipogenesis/July2018/atac_time_deg/motifEnrich
-from=/nv/vol192/civeleklab/warren/MGlab/ATAC_WAFD/3T3_ATAC1-3/motifs/TFfimo/res/summary1p5M/fimo_bigWig1p5M
-scp -r wa3j@interactive.hpc.virginia.edu:${from} ${to}
-
-# analysis
-Motif_in_peak_20190401.R
+# next analysis
+Motif_in_peak.R
 
 
 
