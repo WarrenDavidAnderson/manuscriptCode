@@ -158,6 +158,10 @@ pk.coords.for.meme = function(res=NULL, pk.dist=NULL){
 out.sig = pk.coords.for.meme(res=sig.pks, pk.dist=pk.dist)
 out.uns = pk.coords.for.meme(res=uns.pks, pk.dist=pk.dist)
 
+# save insignificant peaks for enrichment analysis
+# see Motif_in_peak_diffDyn.R and enrichSummary_diffDyn.sh
+save(out.uns, file="out.uns.RData")
+
 ############################################################
 ## data transformations for STEM
 ## /media/wa3j/Seagate2/Documents/software/stem
@@ -204,7 +208,7 @@ stem.res = stem.res0 %>% select(gene_symbol, Profile)
 stem.res$gene_symbol = tolower(stem.res$gene_symbol)
 
 # write out coordinate information for enrichment analysis
-# see Motif_in_peak_diffDyn.R
+# see Motif_in_peak_diffDyn.R and enrichSummary_diffDyn.sh
 save(stem.res, file="stem.res.RData")
 
 # threshold number of profiles for plotting
