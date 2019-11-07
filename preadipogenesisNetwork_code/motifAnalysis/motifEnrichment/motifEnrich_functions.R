@@ -41,10 +41,12 @@ enrich.plot.select = function(enrich.dat=NULL, comp.mode=NULL){
 plot.enrich = function(comp.mode=NULL,fname=NULL,mfrow=NULL,
                        enrich.dat=NULL, res.pairs=NULL, 
                        sig.thresh=NULL, fc.thresh=NULL,
-                       sig.un=NULL, fc.un=NULL,
+                       sig.un=NULL, fc.un=NULL, type=NULL,
                        half.win=NULL, step=NULL, delbp = 60,
                        fimo.bigWig.path=NULL, loess.span = 0.3,
                        plt.trace=F, plt.motif=F, pwm.list=NULL){
+  
+  diff.filtered = c()
   
   # set plot file
   pdf(fname)
@@ -80,24 +82,56 @@ plot.enrich = function(comp.mode=NULL,fname=NULL,mfrow=NULL,
       per.diff = max(-dat$INCminusUN, -dat$DECminusUN)
     }
     
-    # peak data indices
+    # comparison
     comp = dat$tcomp
-    res_ii = res.pairs[[comp]]
-    ind.up = which(res_ii$padj<sig.thresh & res_ii$log2FoldChange>fc.thresh)
-    ind.dn = which(res_ii$padj<sig.thresh & res_ii$log2FoldChange<(-1)*fc.thresh)
-    ind.un = which(res_ii$padj>sig.un & abs(res_ii$log2FoldChange)<fc.un)
-    if(length(ind.up)==0){next}
+
+    # differential atac peaks
+    if(type == "deg"){
+      
+      # peak data indices
+      res_ii = res.pairs[[comp]]
+      ind.up = which(res_ii$padj<sig.thresh & res_ii$log2FoldChange>fc.thresh)
+      ind.dn = which(res_ii$padj<sig.thresh & res_ii$log2FoldChange<(-1)*fc.thresh)
+      ind.un = which(res_ii$padj>sig.un & abs(res_ii$log2FoldChange)<fc.un)
+      if(length(ind.up)==0){next}
+      
+      # get read mapping coords with half.win around each summit
+      up.ind = sapply(rownames(res_ii)[ind.up],function(x){which(all.peaks==x)})
+      dn.ind = sapply(rownames(res_ii)[ind.dn],function(x){which(all.peaks==x)})
+      un.ind = sapply(rownames(res_ii)[ind.un],function(x){which(all.peaks==x)})
+      bed.up = bed.window(summits=all.summits[up.ind], half.win=half.win)
+      bed.dn = bed.window(summits=all.summits[dn.ind], half.win=half.win)
+      bed.un = bed.window(summits=all.summits[un.ind], half.win=half.win)
+    }
     
-    # get read mapping coords with half.win around each summit
-    up.ind = sapply(rownames(res_ii)[ind.up],function(x){which(all.peaks==x)})
-    dn.ind = sapply(rownames(res_ii)[ind.dn],function(x){which(all.peaks==x)})
-    un.ind = sapply(rownames(res_ii)[ind.un],function(x){which(all.peaks==x)})
-    bed.up = bed.window(summits=all.summits[up.ind], half.win=half.win)
-    bed.dn = bed.window(summits=all.summits[dn.ind], half.win=half.win)
-    bed.un = bed.window(summits=all.summits[un.ind], half.win=half.win)
+    # dreg peaks
+    if(type == "dreg"){
+      
+      # peak data indices
+      res_ii = as.data.frame(res.pairs[[comp]])
+      rownamen = rownames(res_ii)
+      chrs = sapply(rownames(res_ii),function(x)strsplit(x,":")[[1]][1])
+      res_ii = res_ii %>% mutate(chrs=chrs)
+      rownames(res_ii) = rownamen
+      keep = paste0("chr",1:19)
+      res_ii = res_ii[res_ii$chrs %in% keep,]
+      ind.up = which(res_ii$padj<sig.thresh & res_ii$log2FoldChange>fc.thresh)
+      ind.dn = which(res_ii$padj<sig.thresh & res_ii$log2FoldChange<(-1)*fc.thresh)
+      ind.un = which(res_ii$padj>sig.un & abs(res_ii$log2FoldChange)<fc.un)
+      if(length(ind.up)==0){next}
+      
+      # get read mapping coords with half.win around each summit
+      up.ind = sapply(rownames(res_ii)[ind.up],function(x){which(bed.map$id==x)}) %>% unlist()
+      dn.ind = sapply(rownames(res_ii)[ind.dn],function(x){which(bed.map$id==x)}) %>% unlist()
+      un.ind = sapply(rownames(res_ii)[ind.un],function(x){which(bed.map$id==x)}) %>% unlist()
+      bed.up = bed.window2(summits=bed.map$center[up.ind], half.win=half.win, chr=bed.map$chr[up.ind])
+      bed.dn = bed.window2(summits=bed.map$center[dn.ind], half.win=half.win, chr=bed.map$chr[dn.ind])
+      bed.un = bed.window2(summits=bed.map$center[un.ind], half.win=half.win, chr=bed.map$chr[un.ind])
+    }
     
     # factor bigWig file
-    bw.fimo = paste0(fimo.bigWig.path,"/fimo_",dat$id,".bigWig")
+    fname = list.files(path=fimo.bigWig.path, pattern=paste0(dat$id,".bigWig"))
+    bw.fimo = paste0(fimo.bigWig.path,"/",fname)
     bw.fimo = load.bigWig(bw.fimo)
     
     # bp range centered on zero
@@ -108,21 +142,33 @@ plot.enrich = function(comp.mode=NULL,fname=NULL,mfrow=NULL,
     dndat = motif.map(bigwig=bw.fimo,coords=bed.dn,step=step,bps=bps)
     undat = motif.map(bigwig=bw.fimo,coords=bed.un,step=step,bps=bps)
     
-    # compute peak index
-    indL = which(updat$bp < -(half.win-delbp))
+    # compute the baseline adjusted integrals
+    indL = which(updat$bp < -(half.win-2*delbp))
     indM = which(updat$bp >= -delbp/2 & updat$bp <= delbp/2)
-    indR = which(updat$bp > (half.win-delbp))
+    indR = which(updat$bp > (half.win-2*delbp))
+    upnorm = updat$mean - mean(c(updat$mean[indL],updat$mean[indR]))
+    dnnorm = dndat$mean - mean(c(dndat$mean[indL],dndat$mean[indR]))
+    unnorm = undat$mean - mean(c(undat$mean[indL],undat$mean[indR]))
+    x = seq(0,step*length(upnorm)-step,by=step)
+    integup = trapz(x,upnorm)
+    integdn = trapz(x,dnnorm)
+    integun = trapz(x,unnorm)
+    
+    # compute peak index and pk density difference
     pk.up = mean(updat$mean[indM]) / mean(c(updat$mean[indL],updat$mean[indR]))
     pk.dn = mean(dndat$mean[indM]) / mean(c(dndat$mean[indL],dndat$mean[indR]))
     pk.un = mean(undat$mean[indM]) / mean(c(undat$mean[indL],undat$mean[indR]))
     if(comp.mode=="inc"){
       pk.index = pk.up
+      integ = integup
     }
     if(comp.mode=="dec"){
       pk.index = pk.dn
+      integ = integdn
     }
     if(comp.mode=="un"){
       pk.index = pk.un
+      integ = integun
     }
     pk.up = format(pk.up,digits=3)
     pk.dn = format(pk.dn,digits=3)
@@ -148,7 +194,8 @@ plot.enrich = function(comp.mode=NULL,fname=NULL,mfrow=NULL,
     
     # plot smoothed curves
     main = paste0("peak indices = ",pk.up,", ",pk.dn,", ",pk.un,
-                  "\n max % diff = ",format(per.diff,digits=3))
+                  "\n max % diff = ",format(per.diff,digits=3),
+                  "\n integral = ", format(integ,digits=3))
     plot(updat$bp, updat$mean, type="l", ylim=ylim, 
          ylab="lowess smoothed", xlab="distance from summit (bp)",
          lwd=2, col="white", main=main,cex.lab=fnt,cex.main=fnt)
@@ -201,7 +248,7 @@ plot.enrich = function(comp.mode=NULL,fname=NULL,mfrow=NULL,
     # plot data
     pv = format(chi$p.value,digits=3)
     main = paste0(motif,"\n p = ",pv,
-          "\n counts: ",result[1,2],", ",result[1,2],", ",result[1,3],
+          "\n countsUID: ",result[1,1],", ",result[1,2],", ",result[1,3],
           "\n %: ",resultn[1,1]%>%format(digits=3),", ",
           resultn[1,2]%>%format(digits=3),", ",resultn[1,3]%>%format(digits=3))
     barplot(resultn[1,], col = c("gray","red","blue"), 
@@ -212,61 +259,6 @@ plot.enrich = function(comp.mode=NULL,fname=NULL,mfrow=NULL,
             axes=F, axisnames=F,
             offset = resultn[1,], add=T)
     
-    # plot traces
-    if(plt.trace==TRUE){
-      
-      # get read data for plotting plot peak dynamics for peaks with motifs in all three classes
-      up.bed = up.bed[rownames(up.bed) %in% names(up)[which(up > 0)],]
-      dn.bed = dn.bed[rownames(dn.bed) %in% names(dn)[which(dn > 0)],]
-      un.bed = un.bed[rownames(un.bed) %in% names(un)[which(un > 0)],]
-      reads.up = get.counts.interval2(bed=up.bed,
-                                      bigWig.path=atac.bigWig.path,
-                                      file.prefix=file.prefix,
-                                      file.suffix=file.suffix,
-                                      min.length=min.length,
-                                      sizefac=sizefac,
-                                      omit= "6d")
-      reads.dn = get.counts.interval2(bed=dn.bed,
-                                      bigWig.path=atac.bigWig.path,
-                                      file.prefix=file.prefix,
-                                      file.suffix=file.suffix,
-                                      min.length=min.length,
-                                      sizefac=sizefac,
-                                      omit= "6d")
-      reads.un = get.counts.interval2(bed=un.bed,
-                                      bigWig.path=atac.bigWig.path,
-                                      file.prefix=file.prefix,
-                                      file.suffix=file.suffix,
-                                      min.length=min.length,
-                                      sizefac=sizefac,
-                                      omit= "6d")
-      reads.up = as.data.frame(reads.up, stringsAsFactors=F)
-      reads.dn = as.data.frame(reads.dn, stringsAsFactors=F)
-      reads.un = as.data.frame(reads.un, stringsAsFactors=F)
-      reads.up = organize.reads(reads=reads.up, times=t.order)
-      reads.dn = organize.reads(reads=reads.dn, times=t.order)
-      reads.un = organize.reads(reads=reads.un, times=t.order)
-      
-      # generate plot
-      y1 = colMeans(reads.up)
-      y2 = colMeans(reads.dn)
-      y3 = colMeans(reads.un)
-      span = max(c(y1,y2,y3)) - min(c(y1,y2,y3))
-      ylim = c(min(c(y1,y2,y3))-0.1*span, max(c(y1,y2,y3))+0.1*span)
-      x = colnames(reads.up) %>% as.numeric
-      main = paste0(dat$tcomp,", ",comp.mode)
-      plot(x,y1,col="red",type="l",ylim=ylim,xlab="time (hr)",
-           ylab="average atac signal with motif",lwd=2,main=main)
-      lines(x,y3,col="darkgray",type="l",lwd=2)
-      lines(x,y2,col="blue",type="l",lwd=2)
-    } # plot traces
-    
-    # plot motif signatures
-    if(plt.motif==TRUE){
-      mat = pwm.list[[tfid]]
-      grid.arrange( logo.plt(pwm=mat, title=motif), ncol=2, nrow=3 )
-    } # plot motif signatures
-    
     print(ii / nrow(enrich.dat))
     
   } # for loop
@@ -274,9 +266,270 @@ plot.enrich = function(comp.mode=NULL,fname=NULL,mfrow=NULL,
 } # plot.enrich
 
 
+# function for plotting enrichments for dynamic cluster peaks
+plot.enrich.dyn = function(comp.mode=NULL,fname=NULL,mfrow=c(3,3),
+                           enrich.dat=NULL, 
+                           stem.res=NULL,
+                           out.uns=NULL,
+                           all.peaks=NULL,
+                           all.summits=NULL,
+                           type=NULL,
+                           half.win=NULL, step=NULL,
+                           fimo.bigWig.path=NULL){
+  
+  diff.filtered = c()
+  
+  # set plot file
+  pdf(fname)
+  par(mfrow=mfrow)
+  
+  # loop through all entries
+  for(ii in 1:nrow(enrich.dat)){
+    
+    # specify data
+    dat = enrich.dat[ii,]
+    tfid = dat$id
+    
+    # text for plotting
+
+    if(comp.mode=="dyn"){
+      per.dat1 = signif(dat$DYNminusUNC,2)
+      var.dat1 = signif(dat$varDYN,3)
+      per.diff = dat$DYNminusUNC
+    }
+    
+    if(comp.mode=="unc"){
+      per.dat1 = signif(dat$UNCminusDYN,2)
+      var.dat1 = signif(dat$varUNC,3)
+      per.diff = dat$UNCminusDYN
+    }
+    
+    # comparison
+    comp = dat$Profile
+    
+    # differential atac peaks
+    # get bed data for dynamic cluster peaks
+    # get bed data for non-dynamic peaks
+    ind = which(stem.res$Profile == comp) 
+    pkdat = stem.res$gene_symbol[ind]
+    dyn.bed = get.map.from.res( pkdat )
+    len.dyn = length(ind)
+    pk.un = out.uns$peakID[sample.int( nrow(out.uns), min(nrow(out.uns), length(pkdat)) )]
+    unc.bed = get.map.from.res( pk.un )
+    len.unc = length(pk.un)
+    
+    # get read mapping coords with half.win around each summit
+    dyn.ind = sapply(pkdat,function(x){which(all.peaks==x)}) %>% unlist()
+    unc.ind = sapply(pk.un,function(x){which(all.peaks==x)}) %>% unlist()
+    bed.dyn = bed.window(summits=all.summits[dyn.ind], half.win=half.win)
+    bed.unc = bed.window(summits=all.summits[unc.ind], half.win=half.win)
+    
+    # factor bigWig file
+    fname = list.files(path=fimo.bigWig.path, pattern=paste0(dat$id,".bigWig"))
+    bw.fimo = paste0(fimo.bigWig.path,"/",fname)
+    bw.fimo = load.bigWig(bw.fimo)
+    
+    # bp range centered on zero
+    bps = seq(-half.win, half.win, length.out=2*half.win/step)
+    
+    # matching peak data with the motif 
+    dyndat = motif.map(bigwig=bw.fimo,coords=bed.dyn,step=step,bps=bps)
+    uncdat = motif.map(bigwig=bw.fimo,coords=bed.unc,step=step,bps=bps)
+    
+    # compute the baseline adjusted integrals
+    indL = which(dyndat$bp < -(half.win-2*delbp))
+    indM = which(dyndat$bp >= -delbp/2 & dyndat$bp <= delbp/2)
+    indR = which(dyndat$bp > (half.win-2*delbp))
+    dynnorm = dyndat$mean - mean(c(dyndat$mean[indL],dyndat$mean[indR]))
+    uncnorm = uncdat$mean - mean(c(uncdat$mean[indL],uncdat$mean[indR]))
+    x = seq(0,step*length(dynnorm)-step,by=step)
+    integdyn = trapz(x,dynnorm)
+    integunc = trapz(x,uncnorm)
+    
+    # compute peak index and pk density difference
+    pk.dyn = mean(dyndat$mean[indM]) / mean(c(dyndat$mean[indL],dyndat$mean[indR]))
+    pk.unc = mean(uncdat$mean[indM]) / mean(c(uncdat$mean[indL],uncdat$mean[indR]))
+    if(comp.mode=="dyn"){
+      pk.index = pk.dyn
+      integ = integdyn
+    }
+    if(comp.mode=="unc"){
+      pk.index = pk.unc
+      integ = integunc
+    }
+    pk.dyn = format(pk.dyn,digits=3)
+    pk.unc = format(pk.unc,digits=3)
+    pk.index = format(pk.index,digits=3)
+    
+    # plot the peak traces
+    fnt=1
+    motif = dat$TF
+    all = c(dyndat$mean, uncdat$mean)
+    dd = max(all) - min(all)
+    ylim = c( min(all)-0.1*dd, max(all)+0.1*dd )
+    ylab = paste0(motif, " density")
+    tt = comp
+    main = paste0("Profile: ",tt[1], ", pk.index = ",pk.index, "\n percent diff: ",
+                  per.dat1,"%, ", "% \n var: ",var.dat1,", ",
+                  "\n npeaks: ",dat$npeakDYN,", ",dat$npeakUNC)
+    plot(dyndat$bp, dyndat$mean, type="l", ylim=ylim, 
+         ylab=ylab, xlab="distance from summit (bp)",
+         lwd=2, col="red", main=main,cex.lab=fnt,cex.main=fnt)
+    lines(uncdat$bp, uncdat$mean,lwd=2,col="darkgray")
+    
+    # plot smoothed curves
+    main = paste0("peak indices = ",pk.dyn,", ",pk.unc,
+                  "\n max % diff = ",format(per.diff,digits=3),
+                  "\n integral = ", format(integ,digits=3))
+    plot(dyndat$bp, dyndat$mean, type="l", ylim=ylim, 
+         ylab="lowess smoothed", xlab="distance from summit (bp)",
+         lwd=2, col="white", main=main,cex.lab=fnt,cex.main=fnt)
+    fit.dyn = loess(mean~bp, dyndat, span=loess.span)
+    fit.unc = loess(mean~bp, uncdat, span=loess.span)
+    xaxis = seq(fit.dyn$x[1], fit.dyn$x[length(fit.dyn$x)], length.out=200)
+    plt.dyn = predict(fit.dyn, xaxis)
+    plt.unc = predict(fit.unc, xaxis)
+    lines(xaxis, plt.dyn, lwd=2, col="red")
+    lines(xaxis, plt.unc, lwd=2, col="darkgray")
+    
+    # load bigwig factor mapping data into peak coordinates
+    # number of TFBS in each peak region
+    dyn = bed.region.bpQuery.bigWig(bw.fimo, dyn.bed)
+    unc = bed.region.bpQuery.bigWig(bw.fimo, unc.bed)
+    names(dyn) = rownames(dyn.bed)
+    names(unc) = rownames(unc.bed)
+    
+    # match atac peaks with motif coordinates
+    # get numbers of peaks with >0 motifs
+    dyn.with = length(which(dyn > 0))
+    dyn.without = length(which(dyn == 0))
+    nodif.with = length(which(unc > 0))
+    nodif.without = length(which(unc == 0))
+    result = cbind(c(nodif.with, nodif.without),
+                   c(dyn.with, dyn.without))
+    colnames(result) <- c("Unc", "Dyn")
+    rownames(result) <- c("with motif", "without motif")
+    resultn = apply(result,2,function(x){100*x/(sum(x))})
+    
+    # chi square test result
+    chi = chisq.test(result)
+    
+    # plot data
+    pv = format(chi$p.value,digits=3)
+    main = paste0(motif,"\n p = ",pv,
+                  "\n countsUnDy: ",result[1,1],", ",result[1,2],
+                  "\n %: ",resultn[1,1]%>%format(digits=3),", ",
+                  resultn[1,2]%>%format(digits=3))
+    barplot(resultn[1,], col = c("gray","red"), 
+            main=main, cex.main=fnt, ylim=c(0,100),
+            ylab="percent", xlab="peak class",
+            cex.lab=fnt,cex.names=fnt)
+    barplot(resultn[2,], col = c("white"), 
+            axes=F, axisnames=F,
+            offset = resultn[1,], add=T)
+    
+    print(ii / nrow(enrich.dat))
+    
+  } # for loop
+  dev.off()
+} # plot.enrich.dyn
+
+# > 300 peaks with motifs for the class with the max diff percentage
+filt.maxdiff.pks = function(dat=NULL, npk.thresh=NULL){
+  
+  out = dat
+  
+  # unchanged class
+  if(dat$class[1] == "un"){
+    
+    diff.per = dat %>% select(INCminusUN, DECminusUN)
+    diff.per = apply(diff.per,2,function(x){-1*x})
+    ind.rem = c()
+    cl.max.diff = apply(diff.per,1,function(x){
+      mm = max(x)
+      ind = which(x == max(x))
+      if(ind==1){return("inc")}
+      if(ind==2){return("dec")}
+    })
+    
+    for(ii in 1:length(cl.max.diff)){
+      if(cl.max.diff[ii] == "inc"){
+        if(dat$nmotINC[ii] < npk.thresh){ind.rem = c(ind.rem,ii)}
+      }
+      if(cl.max.diff[ii] == "dec"){
+        if(dat$nmotDEC[ii] < npk.thresh){ind.rem = c(ind.rem,ii)}
+      }
+    }
+    if(length(ind.rem)>0){out = dat[-ind.rem,]}
+    
+  } # unchanged class
+  
+  # increased class
+  if(dat$class[1] == "inc"){
+    
+    diff.per = dat %>% select(INCminusUN, INCminusDEC)
+    ind.rem = c()
+    cl.max.diff = apply(diff.per,1,function(x){
+      mm = max(x)
+      ind = which(x == max(x))
+      if(ind==1){return("un")}
+      if(ind==2){return("dec")}
+    })
+    
+    for(ii in 1:length(cl.max.diff)){
+      if(cl.max.diff[ii] == "un"){
+        if(dat$nmotUN[ii] < npk.thresh){ind.rem = c(ind.rem,ii)}
+      }
+      if(cl.max.diff[ii] == "dec"){
+        if(dat$nmotDEC[ii] < npk.thresh ){ind.rem = c(ind.rem,ii)}
+      }
+    }
+    if(length(ind.rem)>0){out = dat[-ind.rem,]}
+    
+  } # increased class
+  
+  # decreased class
+  if(dat$class[1] == "dec"){
+    
+    diff.per = dat %>% select(DECminusUN, DECminusINC)
+    ind.rem = c()
+    cl.max.diff = apply(diff.per,1,function(x){
+      mm = max(x)
+      ind = which(x == max(x))
+      if(ind==1){return("un")}
+      if(ind==2){return("inc")}
+    })
+    
+    for(ii in 1:length(cl.max.diff)){
+      if(cl.max.diff[ii] == "un"){
+        if(dat$nmotUN[ii] < npk.thresh){ind.rem = c(ind.rem,ii)}
+      }
+      if(cl.max.diff[ii] == "inc"){
+        if(dat$nmotINC[ii] < npk.thresh){ind.rem = c(ind.rem,ii)}
+      }
+    }
+    if(length(ind.rem)>0){out = dat[-ind.rem,]}
+    
+  } # decreased class
+  
+  return(out)
+} # filt.maxdiff.pks
+
+
 ############################################################
 # analysis functions
 ############################################################
+
+# revised bed window function
+bed.window2 = function(summits=NULL, half.win=NULL, chr=NULL){
+  out = cbind(chr, summits-half.win, summits+half.win)
+  out = as.data.frame(out,stringsAsFactors=FALSE)
+  names(out)[2:3] = c("start", "end")
+  rownames(out) = 1:nrow(out)
+  out[,2:3] = apply(out[,2:3],2,function(x){data.matrix(x) %>% as.numeric})
+  out$start[out$start<0] = 0
+  return(out)
+}
 
 # reset bed coords based on window width
 # input: summits =  vector of form "chr:start-end,summit"
