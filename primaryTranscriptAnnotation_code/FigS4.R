@@ -54,40 +54,13 @@ long.minus = long.minus[ind,]
 all(infr.minus$gene == long.minus$gene)
 all(infr.plus$gene == long.plus$gene)
 
-# 
-# #######################################################################################
-# ## compare with inferred coords - TSS - panel c
-# #######################################################################################
-# 
-# # TSS dists (pos = downstream for id)
-# d1 = infr.plus$start - long.plus$start
-# d2 = long.minus$end - infr.minus$end
-# dTSS = c(d1,d2)
-# names(dTSS) = c(infr.plus$gene, infr.minus$gene)
-# 
-# # get number of exon1 instances for each dTSS
-# nex1 = sapply(names(dTSS),function(x){length(which(gencode.firstExon$gene==x))})
-# frac.rean = rep(0, length(1:max(nex1)))
-# for(ii in 1:max(nex1)){
-#   ind.nex1 = which(nex1 == ii)
-#   ge.nex1 = names(nex1)[ind.nex1]
-#   ind.tss = sapply(ge.nex1,function(x){which(names(dTSS)==x)}) %>% unlist()
-#   if(length(ind.tss)>0){
-#     frac.rean[ii] = length(which(dTSS[ind.tss]!=0)) / length(ind.nex1) 
-#   }
-# }
-# frac.rean = data.frame(nex1=1:max(nex1),frac.rean=frac.rean)
-# hypo.rean = data.frame(nex1=1:max(nex1),frac.rean=1/(1:max(nex1)))
-# df.bar = barplot(frac.rean$frac.rean, names.arg=frac.rean$nex1)
-# lines(x=df.bar, y=hypo.rean$frac.rean,lwd=2)
-
 
 #######################################################################################
 ## compare with inferred coords - TSS
 #######################################################################################
 
-pdf("annDiff.pdf")
-par(mfrow=c(2,2))
+pdf("Figs4.pdf")
+par(mfrow=c(2,2)) 
 
 # TSS dists (pos = downstream for id)
 d1 = infr.plus$start - long.plus$start
@@ -204,6 +177,7 @@ length(nexon1)
 d1 = infr.plus$end - long.plus$end
 d2 = long.minus$start - infr.minus$start
 dTTS = c(d1,d2)
+names(dTTS) = c(infr.plus$gene, infr.minus$gene)
 qt = quantile(abs(dTTS), probs = 0.75)
 length(which(abs(dTTS)>100000))
 
@@ -225,3 +199,11 @@ hist(dTTS[abs(dTTS)<qt]/1000, col="black",main="",xlab="dTTS, identified - large
 dev.off()
 
 
+#################################################
+# check the proportion of dTTS < 0
+# upper bound for the fraction of genic enhancers
+# that influence TTS identification
+
+ind = which(dTTS < 0)
+frac = length(ind) / length(dTTS)
+dTTS[ind]
