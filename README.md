@@ -8,5 +8,6 @@ primaryTranscriptAnnotation_code: Defining data-driven gene coordinates with pri
 Bioinformatics, 2020<br/>
 
 sexDifferencesAdipose_code: Sex differences in human adipose tissue gene expression and genetic regulation involve adipogenesis<br/>
+Genome Research, 2020<br/>
 
 
