@@ -1,7 +1,7 @@
 
 ############################################################################
 # Sex differences in human adipose tissue gene expression and genetic regulation involve adipogenesis
-# Figure 5b,f
+# Figure 4f
 ############################################################################
 
 library(dplyr)
@@ -14,7 +14,7 @@ setwd("/media/wa3j/Seagate2/Documents/adipose_sex_ms/final/fig5")
 deg.eqtl.genes = c("CCDC3","CLIC6","FADS1","GLDN","HSPA12A","MAP1B","MLPH","MMD","MYOT","NDRG4","NEO1","PDZD2","TBC1D9")
 
 ############################################################################
-# integrate with ATAC data, see shell script fig5.sh
+# integrate with ATAC data, see shell script fig4_atac.sh
 ############################################################################
 
 setwd("/media/wa3j/Seagate2/Documents/adipose_sex_ms/final/fig5")

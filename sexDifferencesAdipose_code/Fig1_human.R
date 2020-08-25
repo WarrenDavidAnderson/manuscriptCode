@@ -16,7 +16,9 @@ load(dat)
 
 library(NMF)
 library(dplyr)
+library(limma)
 library(VennDiagram)
+library(SuperExactTest)
 
 ############################################################################
 # ma plots
@@ -35,7 +37,7 @@ deg.ma.plot = function(data=NULL,fc.cut=1.05, fdr.cut=0.05, all_fc=NULL){
   points(outf$AveExpr, outf$logFC, col="red")
   points(outm$AveExpr, outm$logFC, col="blue")
   indsig = sapply(all_fc$gene,function(x){which(output$ID==x)}) %>% unlist
-  points(output$AveExpr[indsig], output$logFC[indsig], col="black", pch=19)
+  points(output$AveExpr[indsig], output$logFC[indsig], col="cyan", pch=19)
   abline(h=0,lty=2)
 }
 
@@ -67,6 +69,7 @@ ann_gene0 = read.table(fname,header=T,sep="\t",stringsAsFactors=F,quote="")
 ggenes = sapply(colnames(dat_F_decode),function(x){ann_gene0$gene_list[which(ann_gene0$ID==x)]})
 colnames(dat_F_decode) = colnames(dat_M_decode) = ggenes
 
+
 # put the ma plots in a pdf
 fname = "degMA.pdf"
 pdf(fname)
@@ -87,6 +90,29 @@ dev.off()
 
 # save.image("fig1a.RData")
 # load("fig1a.RData")
+
+############################################################################
+# significance of 3-way overlap --> 162
+############################################################################
+
+# elements of the Venn
+match = paste0("match",1:162)
+gtex = paste0("gtex",1:2692)
+decode = paste0("decode",1:503)
+aagmex = paste0("aagmex",1:1749)
+gtex.decode = paste0("gtexdecode",1:150)
+gtex.aagmex = paste0("gtexaagmex",1:287)
+decode.aagmex = paste0("decodeaagmex",1:132)
+
+# individual data sets
+d1 = c(match,gtex,gtex.decode,gtex.aagmex)
+d2 = c(match,decode,gtex.decode,decode.aagmex)
+d3 = c(match,aagmex,gtex.aagmex,decode.aagmex)
+
+# statistical test
+x = list(d1, d2, d3)
+n = max(ncol(dat_F_gtex), ncol(dat_F_decode), ncol(dat_F_aagmex))
+res = MSET(x,n,lower.tail=FALSE,log.p=FALSE)
 
 ############################################################################
 # generate histograms for 3 m/f deg analyses
@@ -502,6 +528,7 @@ dev.off()
 ################################333
 # checks
 # save.image("fig1dat.RData")
+# load("fig1dat.RData")
 length(which(main$ntissues>0))
 mainH = main %>% filter(hmdp_fc != "NA")
 mainH = mainH %>% filter(abs(hmdp_fc)>1.05, hmdp_fdr<0.05)

@@ -1,11 +1,11 @@
 
 ############################################################################
 # Sex differences in human adipose tissue gene expression and genetic regulation involve adipogenesis
-# Figure 6
+# Figure 5
 ############################################################################
 
 # data directory
-dir="/media/wa3j/Seagate2/Documents/adipose_sex_ms/final/fig6"
+dir="/media/wa3j/Seagate2/Documents/adipose_sex_ms/final/fig5"
 setwd(dir)
 
 library(Rcpp)
@@ -533,7 +533,7 @@ degM = expr.M.Alt
 fcg.plot.gen(pheno,degF,degM,fname="growFig6.pdf",
              class,fc.gene,dg.gene)
 
-
+# identify correlations for percent fat
 de = exprF - exprM
 dp = fat8.F - fat8.M
 fat.res = cor.fn(de=de, dp=dp, thresh=0.05, na.prop=0.4)
@@ -561,8 +561,8 @@ library(biomaRt)
 dir="/media/wa3j/Seagate2/Documents/adipose_sex_ms/final/fig6"
 setwd(dir)
 
-# union eqtl data
-fname = "/media/wa3j/Seagate2/Documents/adipose_sex_ms/final/fig4/union.eqtl.RData"
+# load eQTL classification data (CIdata.cases)
+fname = "/media/wa3j/Seagate2/Documents/adipose_sex_ms/final/gtex_eqtl/CIdata.cases.RData"
 load(fname)
 
 # combine data for fc cor analysis
@@ -581,13 +581,7 @@ length(unique(fc.cor.sig$gene))
 
 ## get human orthologs of mouse genes
 ## get overlapping lists of genes
-
-union.eqtl = union.eqtl[order(union.eqtl$p_peer),]
-union.eqtl = union.eqtl[!duplicated(union.eqtl$gene),]
-eqtl = union.eqtl[,-c(2,3)]
-names(eqtl)[8] = "gene"
-
-genesH = eqtl$gene
+genesH = unique(CIdata.cases$genename)
 genesM = unique(fc.cor.sig$gene)
 human = useMart("ensembl", dataset = "hsapiens_gene_ensembl")
 mouse = useMart("ensembl", dataset = "mmusculus_gene_ensembl")
@@ -613,13 +607,12 @@ dim(orthos)
 length(unique(orthos$human))
 length(unique(orthos$mouse))
 
-# merge fc cor data with interaction eqtl data
-# save(eqtl.fccor, file="eqtl.fccor.RData")
-
+# annotate data
 names(fc.cor.sig)[1] = "mouse"
 fc.cor.ortho = merge(fc.cor.sig,orthos,by="mouse")
 names(fc.cor.ortho)[11] = "gene"
-names(eqtl)[8] = "gene"
+eqtl = CIdata.cases[,-c(2,3,5,7)]
+names(eqtl)[4] = "gene"
 eqtl.fccor = merge(eqtl,fc.cor.ortho,by="gene")
 
 # functional enrichment of eqtl.fccor genes
@@ -662,3 +655,35 @@ save(res_filtered, file="res_filtered.RData")
 out = res_filtered
 write.table(out,"TableS14.txt",col.names=T,row.names=F,quote=F,sep="\t")
 
+
+
+
+############################################################
+## check enrichment for just human egenes
+############################################################
+
+
+# get enrichment results
+res = enrichr(genes=unique(eqtl$gene), databases=db)
+
+# filter each set of results
+fdrthresh = 0.05
+pthresh = 0.001
+ngenes = 1
+res_filtered = c()
+for(ii in 1:length(res)){
+  dat = res[[ii]]
+  #dat = dat %>% filter(Adjusted.P.value < fdrthresh)
+  dat = dat %>% filter(P.value < pthresh)
+  dat = dat %>% mutate(source = names(res)[ii])
+  nge = dat$Genes
+  nge = sapply(nge,function(x){
+    ge = strsplit(x,";")[[1]]
+    return(length(ge))
+  })
+  dat = dat %>% mutate(nge=nge) 
+  dat = dat %>% filter(nge > ngenes)
+  res_filtered = rbind(res_filtered, dat)
+}
+res_filtered = res_filtered[order(res_filtered$Odds.Ratio,decreasing=T),]
+res_filtered = res_filtered[,c(1,3,4,7,9,10,11)]

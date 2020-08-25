@@ -2,9 +2,6 @@
 
 ############################################################################
 # Integrative analysis of sex differences in adipose tissue gene regulation
-# Figure 2
-# see vignette: 
-# see script: 
 ############################################################################
 
 ############################################################################
@@ -65,6 +62,12 @@ raceM = ann$RACE[indM]
 # variable.cgi?study_id=phs000424.v7.p2&phv=169064&phd=3910&pha=&pht=2742&phvf=&phdf=&phaf=&phtf=&dssp=2&consent=&temp=1
 nAAf = length(which(raceF==2)) # 25
 nAAm = length(which(raceM==2)) # 46
+
+# ages
+age = c(ann$AGE[indF], ann$AGE[indM])
+mean(age)
+min(age)
+max(age)
 
 
 

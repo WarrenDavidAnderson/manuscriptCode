@@ -1,7 +1,7 @@
 
 ############################################################################
 # Sex differences in human adipose tissue gene expression and genetic regulation involve adipogenesis
-# Figure 4b
+# Figure 3b
 ############################################################################
 
 library(dplyr)
@@ -67,7 +67,7 @@ names(h2f) = names(h2m) = c("id","Vg","Ve","Vp","h2","logL","logL0","LRT","df","
 load("/media/wa3j/Seagate2/Documents/adipose_sex_ms/final/gtex_eqtl/CIdata.RData")
 
 ############################################################################
-# Fig 4b - effect sizes and heritability
+# Fig 3b - effect sizes and heritability
 ############################################################################
 
 pdf("fig4b.pdf")
@@ -104,6 +104,12 @@ beanplot(beta~type, data=beandatEffect, side="both", ll=0,
 
 dev.off()
 
+# stats, effect size
+res = wilcox.test(abs(CIdata$coefF), abs(CIdata$coefM), alternative="two.sided")
+
+# stats, h2
+res = wilcox.test(h2$h2.x, h2$h2.y, alternative="two.sided")
+
 # supp heritability fig
 library(LSD)
 pdf("heritHeat.pdf")
@@ -118,49 +124,7 @@ heatscatter(x, y, add.contour=F, nlevels=10, xlab=xlab, ylab=ylab)
 abline(0,1,lwd=3)
 dev.off()
 
-############################################################################
-# Supplementary - norm method effect size correlations
-############################################################################
 
-pdf("supfig_eqtlCor.pdf")
-par(mfrow=c(2,2))
-
-# peer versus sva
-x = union.eqtl$b_peer
-y = union.eqtl$b_sva
-cor(x,y) # 0.9916561
-plot(x,y, ylab="SVA effect size", xlab="PEER effect size")
-
-# peer versus no
-x = union.eqtl$b_peer
-y = union.eqtl$b_no
-cor(x,y) # 0.8427661
-plot(x,y, ylab="covariate effect size", xlab="PEER effect size")
-
-
-# no versus sva
-x = union.eqtl$b_no
-y = union.eqtl$b_sva
-cor(x,y) # 0.8327513
-plot(x,y, ylab="SVA effect size", xlab="covariate effect size")
-
-dev.off()
-
-# table S6 (ref then alt)
-tables6 = union.eqtl[,c(2,3,10,4:9)]
-names(tables6)[1:3] = c("variant_id","ensid","gene")
-tables6 = merge(tables6,geno.ann[,c(1,7)],by="variant_id")
-tables6 = tables6[,c(10,1:9)]
-names(tables6)[1] = "rsid"
-write.table(tables6,"TableS6.txt",col.names=T,row.names=F,quote=F,sep="\t")
-
-# table S7 (ref then alt)
-tables7 = intersect.eqtl[,c(2,3,10,4:9)]
-names(tables7)[1:3] = c("variant_id","ensid","gene")
-tables7 = merge(tables7,geno.ann[,c(1,7)],by="variant_id")
-tables7 = tables7[,c(10,1:9)]
-names(tables7)[1] = "rsid"
-write.table(tables7,"TableS7.txt",col.names=T,row.names=F,quote=F,sep="\t")
 
 ############################################################################
 # basic processing of LD data
@@ -535,7 +499,6 @@ CIdata.unfilt$gene = eqtldatfilt$gene
 
 ############################################################################
 # overlap sex-stratified eqtls and gwas 
-# fig 4c
 ############################################################################
 
 library(NMF)
@@ -737,7 +700,7 @@ dat = gwas.eqtl %>% select('beta-f-whr', 'beta-m-whr', coefF, coefM, cases)
 cor.whr = make.plots(dat,fname="WHR.pdf")
 
 ############################################################################
-# Fig 4c
+# Fig 3c
 ############################################################################
 
 library(dplyr)
@@ -747,7 +710,7 @@ library(gridExtra)
 setwd("/media/wa3j/Seagate2/Documents/adipose_sex_ms/final/fig4")
 
 # multi color bar for all association cases
-pdf("fig4d.pdf")
+pdf("fig3c.pdf")
 par(mfrow=c(2,3))
 col = c("darkgreen","purple","black")
 counts = data.frame(table(CIdata.cases$case))

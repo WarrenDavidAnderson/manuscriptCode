@@ -1,7 +1,7 @@
 
 ############################################################################
 # Sex differences in human adipose tissue gene expression and genetic regulation involve adipogenesis
-# Figure 4a
+# Figure 3a
 ############################################################################
 
 library(dplyr)
